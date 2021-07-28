@@ -72,7 +72,8 @@ class DataPreparation():
         self.df = enc.fit_transform(self.df)
 
     def create_train_test(self):
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, 
+        if self.data_type == 'tabular':
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, 
                                                                                 test_size=self.test_size, random_state=7)
 
     def remove_high_correlation(self, thresh=0.8):
@@ -133,6 +134,9 @@ class DataPreparation():
         pca.fit(X_pca)
         variances = np.cumsum(pca.explained_variance_ratio_)
         position = np.argmax(variances > thresh)
+        if position < 2 and len(self.features) > 2:
+            print('Position is smaller than 2. Put it to 2')
+            position = 2
         print('dimemsion reduction: position to choose: ', position)
         pca_final = PCA(n_components=position)
         self.X = pca_final.fit_transform(self.X)
