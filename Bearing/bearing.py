@@ -17,7 +17,7 @@ df = pd.read_csv('merged_dataset_BearingTest_2.csv', index_col=0)
 preprocessings = {
     'imputer': None,
     'mapping': None,
-    'dim_reduce': True,
+    'dim_reduce': False,
     #'preprocess': StandardScaler()
 }
 
@@ -27,4 +27,5 @@ detector = AnomalyDetection('merged_dataset_BearingTest_2.csv',
                             data_type='timeseries')
 detector.set_methods_process(preprocessings)
 detector.processing()
-print(detector.find_anomaly_stat())
+#print(detector.find_anomaly_stat())
+detector.find_anomaly_AE()

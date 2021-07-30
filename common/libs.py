@@ -20,6 +20,9 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 # Resampling
 from imblearn.over_sampling import SMOTE
 
+# Stats utils
+from scipy.spatial.distance import mahalanobis
+
 # Machine Learning / AI
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, \

@@ -1,6 +1,7 @@
 from pandas.core.reshape.tile import cut
 from libs import *
 from data_preparation import *
+from modules_DL import *
 
 
 def is_pos_def(mat):
@@ -32,7 +33,7 @@ class AnomalyDetection(DataPreparation):
         diff = np.array((data - means))
         dist = []
         for i in range(len(diff)):
-            dist.append(np.sqrt(diff[i].dot(inv_cov_mat).dot(diff[i])))
+            dist.append(mahalanobis(diff[i], diff[i], inv_cov_mat))
 
         return dist
 
@@ -91,3 +92,29 @@ class AnomalyDetection(DataPreparation):
             print(classification_report(self.y, y_pred))
 
         return results
+
+    def find_anomaly_AE(self):
+        scaler = MinMaxScaler()
+        X_train_scaled = scaler.fit_transform(self.X_train)
+        autoencoder, decoder = model_auto_encoder(self.X_train.shape[1])
+        history = autoencoder.fit(X_train_scaled, X_train_scaled, batch_size=32, epochs=20, verbose=1)
+        pred_train = autoencoder.predict(X_train_scaled)
+        print(X_train_scaled[:5])
+        print(pred_train[:5])
+        pred_train = pd.DataFrame(pred_train, columns=self.df.columns)
+        scored_train = pd.DataFrame()
+        scored_train['loss_mae'] = np.mean(np.abs(pred_train - X_train_scaled), axis=1)
+        sns.distplot(scored_train['loss_mae'], kde=True, bins=10)
+        plt.show()
+        scored_train['Threshold'] = 0.5
+
+        X_test_scaled = scaler.transform(self.X_test)
+        pred_test = autoencoder.predict(X_test_scaled)
+        pred_test = pd.DataFrame(pred_test, columns=self.df.columns)
+        scored_test = pd.DataFrame()
+        scored_test['loss_mae'] = np.mean(np.abs(pred_test - X_test_scaled), axis=1)
+        scored_test['Threshold'] = 0.5
+
+        scored = pd.concat([scored_train, scored_test])
+        scored.plot(logy=True, figsize=(10, 6), ylim=[1e-2, 1e2], color=['blue', 'red'])
+        plt.show()
