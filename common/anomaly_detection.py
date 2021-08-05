@@ -78,12 +78,17 @@ class AnomalyDetection(DataPreparation):
                                 leaf_size=30, metric='minkowski',
                                 p=2, metric_params=None,
                                 novelty=True, 
-                                contamination=outlier_fraction)
+                                contamination=outlier_fraction),
+            DBSCAN(eps=3, min_samples=2)
+            #OneClassSVM(gamma='auto')
         ]
 
         for clf in classifiers:
-            clf.fit(self.X)
-            y_pred = clf.predict(self.X)
+            if hasattr(clf, 'fit_predict') and callable(getattr(clf, 'fit_predict')):
+                y_pred = clf.fit_predict(self.X)
+            else:
+                clf.fit(self.X)
+                y_pred = clf.predict(self.X)
             y_pred[y_pred == 1] = 0
             y_pred[y_pred == -1] = 1
             classname = clf.__class__.__name__
@@ -96,7 +101,7 @@ class AnomalyDetection(DataPreparation):
     def find_anomaly_AE(self):
         scaler = MinMaxScaler()
         X_train_scaled = scaler.fit_transform(self.X_train)
-        autoencoder, decoder = model_auto_encoder(self.X_train.shape[1])
+        autoencoder, decoder = model_auto_encoder2(self.X_train.shape[1])
         history = autoencoder.fit(X_train_scaled, X_train_scaled, batch_size=32, epochs=20, verbose=1)
         pred_train = autoencoder.predict(X_train_scaled)
         print(X_train_scaled[:5])
@@ -104,9 +109,10 @@ class AnomalyDetection(DataPreparation):
         pred_train = pd.DataFrame(pred_train, columns=self.df.columns)
         scored_train = pd.DataFrame()
         scored_train['loss_mae'] = np.mean(np.abs(pred_train - X_train_scaled), axis=1)
+        scored_train['Threshold'] = 0.5
+
         sns.distplot(scored_train['loss_mae'], kde=True, bins=10)
         plt.show()
-        scored_train['Threshold'] = 0.5
 
         X_test_scaled = scaler.transform(self.X_test)
         pred_test = autoencoder.predict(X_test_scaled)
@@ -115,6 +121,6 @@ class AnomalyDetection(DataPreparation):
         scored_test['loss_mae'] = np.mean(np.abs(pred_test - X_test_scaled), axis=1)
         scored_test['Threshold'] = 0.5
 
-        scored = pd.concat([scored_train, scored_test])
+        scored = pd.concat([scored_train, scored_test], ignore_index=True)
         scored.plot(logy=True, figsize=(10, 6), ylim=[1e-2, 1e2], color=['blue', 'red'])
         plt.show()

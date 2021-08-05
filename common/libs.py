@@ -30,10 +30,11 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier,
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression, PassiveAggressiveClassifier, Lasso, LassoCV
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import TruncatedSVD
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.neighbors import LocalOutlierFactor
+from sklearn.svm import OneClassSVM
 #from skranger.ensemble import RangerForestClassifier
 
 # For hyperparameter tuning

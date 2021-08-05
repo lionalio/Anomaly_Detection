@@ -78,8 +78,10 @@ class DataPreparation():
 
     def create_train_test(self):
         if self.data_type == 'tabular':
-            if self.y is None:
+            self.X = self.df[self.features]
+            if self.label is None:
                 return
+            self.y = self.df[self.label]
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, 
                                                                                 test_size=self.test_size, random_state=7)
         elif self.data_type == 'timeseries':
