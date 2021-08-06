@@ -9,7 +9,7 @@ def is_pos_def(mat):
 
 
 class AnomalyDetection(DataPreparation):
-    def __init__(self, filename, features, label_col, delimiter=',', 
+    def __init__(self, filename, features, label_col=None, delimiter=',', 
                 single_file=True, data_type='tabular', test_size=0.2):
         super().__init__(filename, features, label_col, delimiter, single_file, data_type, test_size)
         self.inv_cov_mat = None
@@ -79,7 +79,7 @@ class AnomalyDetection(DataPreparation):
                                 p=2, metric_params=None,
                                 novelty=True, 
                                 contamination=outlier_fraction),
-            DBSCAN(eps=3, min_samples=2)
+            #DBSCAN(eps=3, min_samples=2)
             #OneClassSVM(gamma='auto')
         ]
 
