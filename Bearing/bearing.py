@@ -28,4 +28,5 @@ detector = AnomalyDetection('merged_dataset_BearingTest_2.csv',
 detector.set_methods_process(preprocessings)
 detector.processing()
 #print(detector.find_anomaly_stat())
-detector.find_anomaly_AE()
+#detector.find_anomaly_AE()
+detector.find_anomaly_VAE()

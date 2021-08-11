@@ -2,6 +2,7 @@ from pandas.core.reshape.tile import cut
 from libs import *
 from data_preparation import *
 from modules_DL import *
+from vae import *
 
 
 def is_pos_def(mat):
@@ -104,23 +105,43 @@ class AnomalyDetection(DataPreparation):
         autoencoder, decoder = model_auto_encoder2(self.X_train.shape[1])
         history = autoencoder.fit(X_train_scaled, X_train_scaled, batch_size=32, epochs=20, verbose=1)
         pred_train = autoencoder.predict(X_train_scaled)
-        print(X_train_scaled[:5])
-        print(pred_train[:5])
-        pred_train = pd.DataFrame(pred_train, columns=self.df.columns)
-        scored_train = pd.DataFrame()
-        scored_train['loss_mae'] = np.mean(np.abs(pred_train - X_train_scaled), axis=1)
-        scored_train['Threshold'] = 0.5
-
-        sns.distplot(scored_train['loss_mae'], kde=True, bins=10)
-        plt.show()
 
         X_test_scaled = scaler.transform(self.X_test)
         pred_test = autoencoder.predict(X_test_scaled)
-        pred_test = pd.DataFrame(pred_test, columns=self.df.columns)
-        scored_test = pd.DataFrame()
-        scored_test['loss_mae'] = np.mean(np.abs(pred_test - X_test_scaled), axis=1)
-        scored_test['Threshold'] = 0.5
+        self.plot_results(pred_train, X_train_scaled, pred_test, X_test_scaled)
 
+    def find_anomaly_VAE(self):
+        scaler = MinMaxScaler()
+        X_train_scaled = scaler.fit_transform(self.X_train)
+        encoder = model_encoder(X_train_scaled)
+        decoder = model_decoder(X_train_scaled)
+
+        vae = VAE(encoder ,decoder)
+        vae.compile(optimizer=tf.keras.optimizers.Adam())
+
+        history = vae.fit(X_train_scaled, X_train_scaled,
+                            epochs=80,
+                            batch_size=128,
+                            shuffle=True
+                        )
+        pred_train = vae.predict(X_train_scaled)
+        X_test_scaled = scaler.transform(self.X_test)
+        pred_test = vae.predict(X_test_scaled)
+        self.plot_results(pred_train, X_train_scaled, pred_test, X_test_scaled)
+        
+    def plot_results(self, predict_train, input_train, predict_test, input_test):
+        pred_train = pd.DataFrame(predict_train, columns=self.features)
+        scored_train = pd.DataFrame()
+        scored_train['loss_mae'] = np.mean(np.abs(pred_train - input_train), axis=1)
+        thresh = scored_train['loss_mae'].mean() + 3*scored_train['loss_mae'].std()
+        scored_train['Threshold'] = thresh
+        sns.distplot(scored_train['loss_mae'], kde=True, bins=10)
+        plt.show()
+        pred_test = pd.DataFrame(predict_test, columns=self.features)
+        scored_test = pd.DataFrame()
+        scored_test['loss_mae'] = np.mean(np.abs(pred_test - input_test), axis=1)
+        scored_test['Threshold'] = thresh
         scored = pd.concat([scored_train, scored_test], ignore_index=True)
         scored.plot(logy=True, figsize=(10, 6), ylim=[1e-2, 1e2], color=['blue', 'red'])
         plt.show()
+

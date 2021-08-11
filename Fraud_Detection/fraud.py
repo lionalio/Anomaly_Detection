@@ -20,5 +20,6 @@ detector = AnomalyDetection('creditcard.csv',
                             'Class')
 detector.set_methods_process(preprocessings)
 detector.processing()
-print(detector.find_anomaly_stat())
-print(detector.find_anomaly_ML())
+#print(detector.find_anomaly_stat())
+#print(detector.find_anomaly_ML())
+detector.find_anomaly_VAE()
