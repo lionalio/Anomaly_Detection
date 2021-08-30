@@ -74,7 +74,9 @@ class DataPreparation():
                 self.df[k] = self.df[k].map(v)
 
     def encoder(self, enc):
-        self.df = enc.fit_transform(self.df)
+        print(self.cat_features)
+        for f in self.cat_features:
+            self.df[f] = enc.fit_transform(self.df[f].astype(str))
 
     def create_train_test(self):
         if self.data_type == 'tabular':
@@ -171,7 +173,7 @@ class DataPreparation():
         if self.mapping is not None:
             self.mapping_data()
         if 'encoder' in self.methods and self.methods['encoder'] is not None:
-            self.encoder(self, self.methods['encoder'])
+            self.encoder(self.methods['encoder'])
 
         self.X = self.df[self.features]
         if 'remove_high_corr' in self.methods and self.methods['remove_high_corr'] is True:

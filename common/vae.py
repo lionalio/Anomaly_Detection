@@ -9,6 +9,7 @@ from keras.models import Sequential
 from keras.metrics import Mean
 from tensorflow.python.eager.backprop import GradientTape
 from keras import backend as K
+from keras.callbacks import EarlyStopping
 
 
 # Ref: 

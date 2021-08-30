@@ -69,8 +69,8 @@ class AnomalyDetection(DataPreparation):
         return outliers
 
     def find_anomaly_ML(self):
-        results = {}       
-        outlier_fraction = len(self.y[self.y == 1]) / len(self.y[self.y == 0])
+        results = {}
+        outlier_fraction = len(self.y[self.y == 1]) / len(self.y) #len(self.y[self.y == 0])
         classifiers = [
             IsolationForest(n_estimators=100, max_samples=len(self.X), 
                             contamination=outlier_fraction,random_state=42, 
@@ -80,7 +80,7 @@ class AnomalyDetection(DataPreparation):
                                 p=2, metric_params=None,
                                 novelty=True, 
                                 contamination=outlier_fraction),
-            #DBSCAN(eps=3, min_samples=2)
+            #DBSCAN(eps=3, min_samples=2),
             #OneClassSVM(gamma='auto')
         ]
 
@@ -94,6 +94,7 @@ class AnomalyDetection(DataPreparation):
             y_pred[y_pred == -1] = 1
             classname = clf.__class__.__name__
             results[classname] = accuracy_score(self.y, y_pred)
+            print('Accuracy: ', results[classname])
             print('Classification report for {}: '.format(classname))
             print(classification_report(self.y, y_pred))
 
@@ -119,10 +120,12 @@ class AnomalyDetection(DataPreparation):
         vae = VAE(encoder ,decoder)
         vae.compile(optimizer=tf.keras.optimizers.Adam())
 
+        es = EarlyStopping(monitor='loss', mode='min', verbose=1)
         history = vae.fit(X_train_scaled, X_train_scaled,
                             epochs=80,
-                            batch_size=128,
-                            shuffle=True
+                            batch_size=32,
+                            shuffle=True,
+                            callbacks=[es]
                         )
         pred_train = vae.predict(X_train_scaled)
         X_test_scaled = scaler.transform(self.X_test)
